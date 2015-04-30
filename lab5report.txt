@@ -1,0 +1,29 @@
+task1：
+	实现过程完全按照程序提示将tf的cs置为USER_CS，ds、es、ee置为USER_DS，esp置为用户栈顶、eip置为程序开头，eflags允许中断
+	由之前的进程switch_to到用户进程，之后运行fortret调用fortrets调用iret从中断返回，返回后会返回到fortrets参数tf指向的地方。这里的tf在task1中已经初始化为用户态的表述，所以程序变成在用户态执行。
+task2：
+	实现过程完全按照注释提示用page2kva找到page和pagen的内核虚拟地址，然后memcpy复制，然后用page_insert修改页表映射
+	复制进程复制mm_struct的时候其中的vma只复制指针，这样复制出的进程实际使用同样的空间，将这块空间标记为只读这样任何进程不能写它，当有进程要写它的时候就为这个进程创建一份这份空间的单独副本。
+task3：
+-----------------------------
+process state changing:
+                                            
+  alloc_proc                                 RUNNING
+      +                                   +--<----<--+
+      +                                   + proc_run +
+      V                                   +-->---->--+ 
+PROC_UNINIT -- proc_init/wakeup_proc --> PROC_RUNNABLE -- try_free_pages/do_wait/do_sleep --> PROC_SLEEPING --
+                                           A      +                                                           +
+                                           |      +--- do_exit --> PROC_ZOMBIE                                +
+                                           +                                                                  + 
+                                           -----------------------wakeup_proc----------------------------------
+-----------------------------
+	大体流程如上图
+	fork：按照父进程的状态复制一个子进程，子进程置为runnable
+	exec: exit_mmap(mm)&pug_pgdir(mm)来为进程获取空间，load_icode载入程序，如果载入失败就exit
+	wait：释放所有zombie状态的子进程资源，如果找不到这样的子状态而且子进程在运行，那么就让父进程sleeping
+	exit: 释放自身资源把自己变成zombie状态，如果自己的父进程在等待那么唤醒父进程；将自己所有的子进程的父进程设置为initproc，如果自己的子进程有处于zombie状态的且initproc等待那么唤醒initproc
+
+
+
+	do_exit的知识并没有在理论课体现
