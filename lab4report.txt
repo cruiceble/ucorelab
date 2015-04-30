@@ -1,0 +1,21 @@
+练习1：
+	把proc_struct中的所有成员变量都进行一次初始化，其中state为PROC_UNINIT，pid为-1，cr3。为boot_cr3，runs、kstack、need_resched、parent、mm、context、tf、flags、name均为0。
+	其中，context和name需要用memset来初始化。
+	我一开始认为kstack应该为bootstack，但是答案并没有这样做，查看代码后发现之后有进一步的赋值。
+	context是线程当前的运行状态（上下文），记录eipesp等8个寄存器的值，通过对于这一部分的swap实现线程的转换。
+	tf保存前一个被中断或异常打断线程的状态，记录段信息、通用寄存器信息等发生中断以及特权级转换时硬件软件保存的信息。
+
+练习2：
+	按照注释中的每一句话来设置即可。我在在添加链表指针之前曾没有设置好pid导致出现unhandled page fault。local_intr_save/restore的用法一开始不了解，但就lab4而言并没有用，之后的lab中可能是必须的，因为这一段不能被中断打断。
+	ucore可以做到给每个新fork的线程一个唯一的id。get_pid函数中当当前线程最大的pid没有达到过max_pid时会依次递增pid作为新的pid不会重复，达到过max_pid之后函数会重新从1开始尝试pid是否可用，内部循环保证不出现新pid与现存pid重复才会返回。
+
+练习3：
+	首先调用load_esp0和lcr3进行栈和页表基址的切换，然后用switch_to完成上下文的保存和加载，ret返回到切换目标的上次中断处继续执行。
+
+	创建并运行了两个内核线程idleproc和init_main。
+	local_intr_save/restore的作用为保存当前的中断使能，并禁止/打开中断。如果当前已经禁止中断，则不需要做任何事情。
+	 在这里的作用就是防止这段程序被中断打断。
+
+
+知识点和原理课都基本对应
+	
