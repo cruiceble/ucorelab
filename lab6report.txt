@@ -1,0 +1,16 @@
+task0:
+	发现我的lab5有地方错了T_T已经在github修正
+task1:
+    函数作用：init初始化调度队列
+			  enqueue把一个进程放入运行队列中
+			  dequeue把一个进程弹出运行队列
+			  pick_next从队列中选出下次运行的进程。
+	调度过程：初始化之后，系统通过schedule来调度进程。
+			  在round robin策略中，当前进程时间片用完后调用schedule，把这个进程放在队尾，取当前队头作为下一个执行的进程让其出队。
+	概要设计：维护n个队列的同时记录进程上次在哪个优先级的队列，enqueue的时候把进程加进记录的优先级的队列， tick的时候让re_sche等于1，dequeue的时候把它出队的同时将它记录的所在队列优先级下降一级。
+task2：
+	实现过程：初始化时把队头设置为null，并把进程计数器置零。
+			  enqueue时调用注释的函数分情况入队，如果time_slice不在合法范围就设为最大值，更新进程计数器。
+			  dequeue时调用注释函数出队，更新进程计数器
+			  tick的时候把计数器减一，如果小于等于0，need_resched=1。
+			  pick的时候，分情况调用注释函数选出队头，并把它的stride加上BIG_STRIDE / priority。
